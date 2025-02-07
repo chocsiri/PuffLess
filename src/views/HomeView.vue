@@ -128,7 +128,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <!-- Fixed Bottom Bar -->
+  
   <div class="fixed bottom-0 left-0 w-full bg-gray-900 text-white p-2">
     <div class="flex justify-around">
       <button class="flex flex-col items-center text-blue-400">
@@ -136,7 +136,7 @@ onMounted(() => {
         <span>หน้าหลัก</span>
       </button>
       
-      <!-- เพิ่ม <router-link> สำหรับการนำทางไปยังหน้า 'statistics' -->
+      
       <router-link to="/Homeview2.vue">
         <button class="flex flex-col items-center text-white">
           <span class="material-icons">bar_chart</span>
