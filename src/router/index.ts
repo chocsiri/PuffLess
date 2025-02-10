@@ -45,7 +45,7 @@ const router = createRouter({
       component: SuccessView
     },
     {
-      path: '/home2',
+      path: '/Homeview2',
       name: 'home2',
       component: HomeView2
     },
