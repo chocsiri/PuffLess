@@ -1,11 +1,12 @@
 <script setup>
 import { ref, onMounted } from "vue";
 
+
 const pm25Hourly = ref([]);
-const pm25Locations = ref([]);
+const pm25Locations = ref([]);  
 const isLoading = ref(true);
 const errorMessage = ref(null);
-
+ 
 const fetchStatisticsData = async () => {
   const apiKey = "a1bfffc563959672387f02e517ea1a60";
   const lat = 19.0292;
@@ -13,21 +14,21 @@ const fetchStatisticsData = async () => {
   const end = Math.floor(Date.now() / 1000);
   const start = end - 24 * 60 * 60;
   const apiUrl = `https://api.openweathermap.org/data/2.5/air_pollution/history?lat=${lat}&lon=${lon}&start=${start}&end=${end}&appid=${apiKey}`;
-
+ 
   try {
     const response = await fetch(apiUrl);
     if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูล AQI ได้");
-
+ 
     const data = await response.json();
     if (!data.list || data.list.length === 0) throw new Error("ไม่มีข้อมูล PM2.5");
-
+ 
     pm25Hourly.value = data.list.slice(-5).map((entry) => {
       return {
         time: new Date((entry.dt + 5 * 3600) * 1000).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }),
         value: entry.components.pm2_5,
       };
     });
-
+ 
     pm25Locations.value = [
       { name: "คณะ ICT", value: 58.3 },
       { name: "หอใน", value: 62.2 },
@@ -40,12 +41,12 @@ const fetchStatisticsData = async () => {
     isLoading.value = false;
   }
 };
-
+ 
 onMounted(() => {
   fetchStatisticsData();
 });
 </script>
-
+ 
 <template>
   <div class="container mx-auto p-4 space-y-6">
     <div class="bg-white shadow-lg rounded-lg p-6 text-center">
@@ -61,7 +62,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-
+ 
     <div class="bg-white shadow-md rounded-lg p-4">
       <h2 class="text-lg font-bold mb-4 text-center">ลำดับค่าฝุ่นเฉลี่ยรายชั่วโมงภายในมหาวิทยาลัยพะเยา</h2>
       <div class="space-y-2">
@@ -73,10 +74,11 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
+ 
 <style scoped>
 .container {
   min-height: 100vh;
   padding-top: 80px;
 }
 </style>
+ 
