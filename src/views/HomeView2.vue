@@ -1,18 +1,23 @@
 <script setup>
-import { ref, onMounted, watchEffect } from "vue";
+import { ref, onMounted, watch } from "vue";
+import Chart from "chart.js/auto";
 
-const pm25Hourly = ref([]);
-const pm25Locations = ref([]);
+const pm25 = ref(null);
+const lastUpdatedTime = ref(null); // เก็บเวลาที่อัปเดตล่าสุด
+const pm25History = ref([]);
 const isLoading = ref(true);
 const errorMessage = ref(null);
+const chartCanvas = ref(null);
+let chartInstance = null; // เก็บ instance ของกราฟ
 
-const fetchStatisticsData = async () => {
-  isLoading.value = true;
+const fetchPM25Data = async () => {
   const apiKey = "a1bfffc563959672387f02e517ea1a60";
   const lat = 19.0292;
   const lon = 99.8976;
-  const end = Math.floor(Date.now() / 1000);
-  const start = end - 24 * 60 * 60;
+
+  const end = Math.floor(Date.now() / 1000); // เวลาปัจจุบัน (UNIX timestamp)
+  const start = end - 7 * 24 * 60 * 60; // ย้อนหลัง 7 วัน
+
   const apiUrl = `https://api.openweathermap.org/data/2.5/air_pollution/history?lat=${lat}&lon=${lon}&start=${start}&end=${end}&appid=${apiKey}`;
 
   try {
@@ -22,91 +27,159 @@ const fetchStatisticsData = async () => {
     const data = await response.json();
     if (!data.list || data.list.length === 0) throw new Error("ไม่มีข้อมูล PM2.5");
 
-    pm25Hourly.value = data.list.slice(-5).map((entry) => ({
-      time: new Date(entry.dt * 1000).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }),
-      value: entry.components.pm2_5,
-    }));
+    pm25.value = data.list[data.list.length - 1].components.pm2_5;
 
-    pm25Locations.value = [
-      { name: "คณะ ICT", value: 62.2 },
-      { name: "คณะวิศวกรรมศาสตร์", value: 60.3 },
-      { name: "หอใน", value: 58.3 },
-      { name: "อาคารเรียน PKY", value: 51.9 },
-    ];
+    const timestamp = data.list[data.list.length - 1].dt;
+    const date = new Date(timestamp * 1000);
+    lastUpdatedTime.value = date.toLocaleTimeString("th-TH", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    pm25History.value = data.list.reduce((acc, entry) => {
+      const date = new Date(entry.dt * 1000);
+      const day = date.toLocaleDateString("th-TH", { day: "2-digit", month: "short" });
+
+      let existingEntry = acc.find(item => item.date === day);
+      if (existingEntry) {
+        existingEntry.value = Math.max(existingEntry.value, entry.components.pm2_5);
+      } else {
+        acc.push({
+          date: day,
+          value: entry.components.pm2_5,
+        });
+      }
+      return acc;
+    }, []);
   } catch (error) {
-    console.error("API Fetch Error:", error);
-    errorMessage.value = error.message || "เกิดข้อผิดพลาดในการดึงข้อมูล";
+    errorMessage.value = error.message;
   } finally {
     isLoading.value = false;
   }
 };
 
-onMounted(fetchStatisticsData);
+const renderChart = () => {
+  if (!chartCanvas.value) return;
 
-// Variables to store the min and max values
-const minPm25 = ref(null);
-const maxPm25 = ref(null);
+  if (chartInstance) chartInstance.destroy();
 
-// Watch for changes in pm25Hourly to update min and max PM2.5 values
-watchEffect(() => {
-  if (pm25Hourly.value.length > 0) {
-    const values = pm25Hourly.value.map(item => item.value);
-    minPm25.value = Math.min(...values);
-    maxPm25.value = Math.max(...values);
-  }
+  const colors = [
+    "rgba(255, 99, 132, 0.6)",
+    "rgba(54, 162, 235, 0.6)",
+    "rgba(255, 206, 86, 0.6)",
+    "rgba(75, 192, 192, 0.6)",
+    "rgba(153, 102, 255, 0.6)",
+    "rgba(255, 159, 64, 0.6)",
+    "rgba(255, 99, 132, 0.6)",
+  ];
+
+  const barColors = pm25History.value.map((_, index) => colors[index % colors.length]);
+
+  chartInstance = new Chart(chartCanvas.value, {
+    type: "bar",
+    data: {
+      labels: pm25History.value.map((d) => d.date),
+      datasets: [
+        {
+          label: "PM2.5 (µg/m³)",
+          data: pm25History.value.map((d) => d.value),
+          backgroundColor: barColors,
+          borderColor: "rgba(54, 162, 235, 1)",
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true },
+      },
+    },
+  });
+};
+
+watch(pm25History, () => {
+  renderChart();
+});
+
+onMounted(() => {
+  fetchPM25Data().then(() => renderChart());
 });
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 p-4">
-    <div class="bg-white shadow-lg rounded-lg p-6 text-center">
-      <h1 class="text-2xl font-bold">ปริมาณฝุ่น PM 2.5</h1>
-      <p class="text-gray-500">ค่าเฉลี่ยรายชั่วโมง</p>
-      <div v-if="isLoading" class="text-gray-500 animate-pulse">⏳ กำลังโหลดข้อมูล...</div>
-      <div v-else-if="errorMessage" class="text-red-500">⚠️ {{ errorMessage }}</div>
-      <div v-else>
-        <p class="text-4xl font-bold text-orange-600">{{ pm25Hourly[pm25Hourly.length - 1]?.value }} ug/m3</p>
-        <p class="text-sm text-gray-500">อัปเดตล่าสุด: {{ pm25Hourly[pm25Hourly.length - 1]?.time }}</p>
-      </div>
+  
+  <div class="bg-white shadow-lg rounded-lg p-6 mt-6">
+    <h2 class="text-lg font-bold mb-4 text-center">ประวัติค่า PM2.5 (รายวัน)</h2>
+    <div class="w-full max-w-full mx-auto h-[400px]">
+      <canvas ref="chartCanvas" class="w-full h-full"></canvas>
     </div>
+  </div>
 
-    <!-- Display Min and Max PM2.5 -->
-    <div class="bg-white shadow-md rounded-lg p-6 mt-6">
-      <h2 class="text-xl font-bold mb-4 text-center">ค่า PM 2.5 ต่ำสุดและสูงสุด</h2>
-      <div v-if="isLoading" class="text-center animate-pulse">⏳ กำลังคำนวณ...</div>
-      <div v-else>
-        <div class="space-y-2 text-center">
-          <div>ค่าต่ำสุด: <span class="font-bold text-orange-600">{{ minPm25 }} ug/m3</span></div>
-          <div>ค่าสูงสุด: <span class="font-bold text-orange-600">{{ maxPm25 }} ug/m3</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white shadow-md rounded-lg p-6 mt-6">
-      <h2 class="text-xl font-bold mb-4 text-center">อันดับค่าเฉลี่ย PM 2.5</h2>
-      <div v-if="isLoading" class="space-y-2">
-        <div class="p-2 bg-gray-200 animate-pulse rounded">&nbsp;</div>
-        <div class="p-2 bg-gray-200 animate-pulse rounded">&nbsp;</div>
-        <div class="p-2 bg-gray-200 animate-pulse rounded">&nbsp;</div>
-      </div>
-      <div v-else>
-        <div class="space-y-2">
-          <div v-for="(location, index) in pm25Locations" :key="location.name" class="flex justify-between p-3 bg-orange-100 rounded-lg">
-            <span class="font-medium">{{ index + 1 }}: {{ location.name }}</span>
-            <span class="font-bold">{{ location.value }}</span>
-          </div>
-        </div>
-      </div>
+ 
+  <div class="fixed bottom-0 left-0 w-full bg-gray-800 text-white">
+    <div class="flex justify-between p-4">
+      <button class="flex flex-col items-center">
+        <span class="material-icons">home</span>
+        <span>หน้าหลัก</span>
+      </button>
+      <button class="flex flex-col items-center">
+        <span class="material-icons">bar_chart</span>
+        <span>สถิติ</span>
+      </button>
+      <button class="flex flex-col items-center">
+        <span class="material-icons">map</span>
+        <span>แผนที่</span>
+      </button>
+      <button class="flex flex-col items-center">
+        <span class="material-icons">pollution</span>
+        <span>สารมลพิษอื่นๆ</span>
+      </button>
+      <button class="flex flex-col items-center">
+        <span class="material-icons">info</span>
+        <span>เกี่ยวกับเรา</span>
+      </button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.min-h-screen {
+.material-icons {
+  font-size: 24px;
+}
+
+.fixed {
+  position: fixed;
+}
+.bottom-0 {
+  bottom: 0;
+}
+.left-0 {
+  left: 0;
+}
+.w-full {
+  width: 100%;
+}
+.bg-gray-800 {
+  background-color: #2d3748;
+}
+.text-white {
+  color: white;
+}
+.p-4 {
+  padding: 1rem;
+}
+.flex {
   display: flex;
-  flex-direction: column;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.items-center {
   align-items: center;
-  justify-content: center;
-  background-color: #f9fafb;
+}
+.flex-col {
+  flex-direction: column;
 }
 </style>
