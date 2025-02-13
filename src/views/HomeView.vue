@@ -16,10 +16,12 @@ const fetchPM25Data = async () => {
   const apiKey = "a1bfffc563959672387f02e517ea1a60";
   const lat = 19.0292;
   const lon = 99.8976;
- 
-  const end = Math.floor(Date.now() / 1000);
-  const start = end - 24 * 60 * 60;
- 
+  
+  // แก้ไขที่นี่เพื่อให้ใช้ช่วงเวลาย้อนหลัง 5 ชั่วโมง
+  const now = new Date(); // เวลาปัจจุบัน
+  const end = Math.floor(now.getTime() / 1000);  // เวลาปัจจุบัน (เป็นวินาที)
+  const start = Math.floor(new Date(now.getTime() - 5 * 60 * 60 * 1000).getTime() / 1000);  // ย้อนหลัง 5 ชั่วโมง (ในหน่วยวินาที)
+  
   const apiUrl = `https://api.openweathermap.org/data/2.5/air_pollution/history?lat=${lat}&lon=${lon}&start=${start}&end=${end}&appid=${apiKey}`;
  
   try {
@@ -28,8 +30,9 @@ const fetchPM25Data = async () => {
  
     const data = await response.json();
     if (!data.list || data.list.length === 0) throw new Error("ไม่มีข้อมูล PM2.5");
- 
-    pm25.value = data.list[data.list.length - 1].components.pm2_5;
+
+    // แสดงข้อมูล PM2.5 ล่าสุด
+    pm25.value = data.list[data.list.length - 1].components.pm2_5;  
     lastUpdatedTime.value = new Date().toLocaleString("th-TH", {
       weekday: "long",
       year: "numeric",
@@ -39,14 +42,15 @@ const fetchPM25Data = async () => {
       minute: "2-digit",
       second: "2-digit"
     });
- 
-    pm25Hourly.value = data.list.slice(-5).map((entry, index) => {
+
+    // แสดงข้อมูล PM2.5 รายชั่วโมงย้อนหลัง
+    pm25Hourly.value = data.list.map((entry) => {
       return {
-        time: new Date((entry.dt + 5 * 3600) * 1000).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }),
+        time: new Date(entry.dt * 1000).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }),
         value: entry.components.pm2_5,
       };
     });
- 
+
     pm25Locations.value = [
       { name: "คณะ ICT", value: 58.3 },
       { name: "หอใน", value: 62.2 },
@@ -59,6 +63,10 @@ const fetchPM25Data = async () => {
     isLoading.value = false;
   }
 };
+
+
+
+
  
 const startAutoUpdate = () => {
   if (updateInterval) clearInterval(updateInterval);
