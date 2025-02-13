@@ -135,7 +135,7 @@ onMounted(() => {
       </div>
 
       <div class="bg-white shadow-2xl rounded-lg p-3 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-[420px]">
-        <h2 class="text-lg font-bold mb-4 text-center">ลำดับค่าฝุ่นเฉลี่ยรายชั่วโมงภายในมหาวิทยาลัยพะเยา</h2>
+        <h2 class="text-lg font-bold mb-4 text-center">อันดับค่าเฉลี่ย<br>PM 2.5</h2>
         <div class="flex justify-center">
           <div class="space-y-2">
             <div v-for="(location, index) in pm25Locations" 
