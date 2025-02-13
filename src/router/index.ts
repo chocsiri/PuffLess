@@ -10,6 +10,7 @@ import CheckoutView from '@/views/user/CheckoutView.vue'
 import SuccessView from '@/views/user/SuccessView.vue'
 import LoginView from '@/views/user/LoginView.vue'
 import RegisterView from '@/views/user/RegisterView.vue'
+import Homeview5Vue from '@/views/Homeview5.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -55,15 +56,10 @@ const router = createRouter({
       component: HomeView3
     },
     {
-      path: '/login',
-      name: 'login',
-      component: LoginView
+      path: '/Homeview5',
+      name: 'home3',
+      component: Homeview5Vue
     },
-    {
-      path: '/register',
-      name: 'register',
-      component: RegisterView
-    }
   ]
 })
 
