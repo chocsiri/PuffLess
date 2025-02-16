@@ -172,14 +172,14 @@ onMounted(() => {
           <span>สถิติ</span>
         </button>
       </router-link>
-      <router-link to="/map">
-        <button class="flex flex-col items-center text-black font-bold mt-2">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" stroke-width="1.5" stroke="currentColor" class="size-7" fill="#0E0069">
-            <path d="M0 464l224-64l224 64V48L224 112L0 48v416z"/>
-          </svg>
-          <span>แผนที่</span>
-        </button>
-      </router-link>
+      <router-link to="/Homeview3">
+  <button class="flex flex-col items-center text-black font-bold mt-2">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" stroke-width="1.5" stroke="currentColor" class="size-7" fill="#0E0069">
+      <path d="M0 464l224-64l224 64V48L224 112L0 48v416z"/>
+    </svg>
+    <span>แผนที่</span>
+  </button>
+</router-link>
       <router-link to="/other-pollutants">
         <button class="flex flex-col items-center text-black font-bold mt-2">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" stroke-width="1.5" stroke="currentColor" class="size-7" fill="#0E0069">
