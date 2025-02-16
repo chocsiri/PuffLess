@@ -17,10 +17,10 @@ const fetchPM25Data = async () => {
   const lat = 19.0292;
   const lon = 99.8976;
   
-  // แก้ไขที่นี่เพื่อให้ใช้ช่วงเวลาย้อนหลัง 5 ชั่วโมง
-  const now = new Date(); // เวลาปัจจุบัน
-  const end = Math.floor(now.getTime() / 1000);  // เวลาปัจจุบัน (เป็นวินาที)
-  const start = Math.floor(new Date(now.getTime() - 5 * 60 * 60 * 1000).getTime() / 1000);  // ย้อนหลัง 5 ชั่วโมง (ในหน่วยวินาที)
+  
+  const now = new Date(); 
+  const end = Math.floor(now.getTime() / 1000);  
+  const start = Math.floor(new Date(now.getTime() - 5 * 60 * 60 * 1000).getTime() / 1000); 
   
   const apiUrl = `https://api.openweathermap.org/data/2.5/air_pollution/history?lat=${lat}&lon=${lon}&start=${start}&end=${end}&appid=${apiKey}`;
  
