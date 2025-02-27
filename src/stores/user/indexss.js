@@ -20,7 +20,7 @@ app.get('/cart', async (req, res) => {
     const collection = database.collection("myCollection");
 
     const data = await collection.find({}).toArray();
-    res.status(200).json(data);  // ส่งข้อมูลกลับเป็น JSON
+    res.status(200).json(data);  
   } catch (error) {
     console.error("❌ Connection error:", error);
     res.status(500).send('Internal Server Error');
