@@ -1,7 +1,39 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
+import axios from "axios";
 
+const no2Level = ref(null);
+const errorMessage = ref("");
 const currentTime = ref("");
+
+const fetchNO2Level = async () => {
+  try {
+    const response = await axios.get("https://api.airvisual.com/v2/city?city=Phayao&state=Phayao&country=Thailand&key=fc0ddf1c-2092-4ed1-872b-ae41f5dcabeb", {
+      params: {
+        city: "Phayao",
+        state: "Phayao",
+        country: "Thailand",
+        key: "fc0ddf1c-2092-4ed1-872b-ae41f5dcabeb",
+      },
+    });
+
+    console.log(response.data); // 👀 Debug API response
+
+    if (response.data.status !== "success") {
+      throw new Error("API response error: " + response.data.status);
+    }
+
+    // เช็กว่าโครงสร้างข้อมูลถูกต้อง
+    if (!response.data.data || !response.data.data.current || !response.data.data.current.pollution) {
+      throw new Error("Invalid API response structure");
+    }
+
+    no2Level.value = response.data.data.current.pollution.no2;
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาด:", error);
+    errorMessage.value = "ไม่สามารถโหลดข้อมูล NO₂ ได้";
+  }
+};
 
 const updateTime = () => {
   currentTime.value = new Date().toLocaleString("th-TH", {
@@ -17,6 +49,7 @@ const updateTime = () => {
 };
 
 onMounted(() => {
+    fetchNO2Level();
   updateTime(); // อัปเดตเวลาครั้งแรก
   const timer = setInterval(updateTime, 1000); // อัปเดตทุก 1 วินาที
 
@@ -25,6 +58,7 @@ onMounted(() => {
     clearInterval(timer);
   });
 });
+
 </script>
 
 <template>
@@ -39,10 +73,14 @@ onMounted(() => {
   <div class="container mx-auto p-4 space-y-6 relative -mt-20">
       <div class="bg-white shadow-2xl rounded-lg p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
         <div class="p-4 rounded-2xl text-md font-bold w-[500px] h-[500px]">
+          <div class="font-bold bg-custom-gray p-4 h-[80px] w-[300px] mx-auto rounded">
+          <h1>ก๊าซไนโตรเจนไดออกไซด์</h1>
+          <p v-if="no2Level">NO₂ : {{ no2Level }} µg/m³</p>
+          <p v-if="errorMessage" class="text-red-500">{{ errorMessage }}</p>
         </div>
-  
+        </div>
       </div>
-
+      
   </div>
 
   <div class="fixed bottom-0 left-0 w-full h-[75px] bg-custom-gray text-white p-2 ">
