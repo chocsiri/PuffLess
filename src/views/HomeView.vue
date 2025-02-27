@@ -57,7 +57,7 @@ const fetchPM25Data = async () => {
       { name: "หอใน", value: 62.2 },
       { name: "อาคารเรียน PKY", value: 51.9 },
       { name: "คณะวิศวกรรมศาสตร์", value: 60.3 },
-    ];
+    ].sort((a, b) => b.value - a.value);
   } catch (error) {
     errorMessage.value = error.message;
   } finally {
@@ -94,6 +94,7 @@ onMounted(() => {
   fetchPM25Data();
   startAutoUpdate();
 });
+
 </script>
  
 <template>
@@ -223,4 +224,5 @@ onMounted(() => {
   background-size: cover;
   background-position: center;
 }
+
 </style>
