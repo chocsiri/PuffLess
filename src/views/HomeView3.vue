@@ -1,27 +1,26 @@
-<script setup>
+<script setup>  
 import { onMounted, ref } from 'vue';
-import L from 'leaflet'
+import L from 'leaflet';
 const map = ref(null);
 
 onMounted(() => {
-  
   map.value = L.map('map').setView([19.0292, 99.8976], 16); 
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map.value);
 
- 
   const bounds = [
     [18.9700, 99.8500], 
     [19.0900, 99.9500]  
   ];
 
- 
   map.value.setMaxBounds(bounds);
-  map.value.fitBounds(bounds); 
+  map.value.fitBounds(bounds); // ให้แผนที่ปรับให้พอดีกับ bounds ที่กำหนด
 
-  
+  // บังคับให้ Leaflet อัปเดตขนาด
+  map.value.invalidateSize(); 
+
   const redIcon = new L.Icon({
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x-red.png', 
     iconSize: [25, 41], 
@@ -37,12 +36,12 @@ onMounted(() => {
     { name: 'หอพักนักศึกษา', lat: 19.0260, lon: 99.8950 }, // จุดใหม่
     { name: 'ศูนย์กีฬา', lat: 19.0320, lon: 99.9000 }, // จุดใหม่
   ];
+
   locations.forEach(location => {
     const marker = L.marker([location.lat, location.lon], { icon: redIcon })
       .addTo(map.value)
       .bindPopup(`<b>${location.name}</b><br>Click for more details.`);
 
-  
     marker.on('click', () => {
       alert(`You clicked on ${location.name}`);
     });
