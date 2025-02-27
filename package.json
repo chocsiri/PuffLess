@@ -11,12 +11,14 @@
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
-    "axios": "^1.7.9",
-    "chart.js": "^4.4.7",
+    "axios": "^1.8.1",
+    "chart.js": "^4.4.8",
+    "express": "^4.21.2",
     "leaflet": "^1.9.4",
+    "mongodb": "^6.13.1",
+    "mongoose": "^8.11.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.15",
-    "vue-chart-3": "^3.1.8",
     "vue-chartjs": "^5.3.2",
     "vue-router": "^4.2.5"
   },
