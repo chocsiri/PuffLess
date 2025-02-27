@@ -140,8 +140,9 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="bg-white shadow-2xl rounded-lg p-3 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-[470px]">
+    <div class="bg-white shadow-2xl rounded-lg p-3 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-[420px]">
       <h2 class="text-lg font-bold mb-4 text-center">อันดับค่าเฉลี่ย<br>PM 2.5</h2>
+      <h2 class="text-lg font-bold mb-4 text-center"></h2>
       <div class="flex justify-center">
         <div class="space-y-2">
           <div v-for="(location, index) in pm25Locations" :key="location.name" class="flex justify-between p-4 bg-custom-orange rounded-2xl text-md font-bold duration-300 hover:scale-105 w-[900px]">
@@ -205,6 +206,13 @@ onMounted(() => {
   background-image: url('https://www.thaihealth.or.th/data/content/2019/10/50235/cms/newscms_thaihealth_c_cdelpqy24689.jpg');
   background-size: cover;
   background-position: center;
+}
+
+
+
+
+.bg-custom-orange {
+  background-color: #ffba0c;
 }
 
 .bg-custom-gray-light {
