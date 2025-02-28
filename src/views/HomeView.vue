@@ -224,13 +224,13 @@ onMounted(() => {
 }
 .bg-custom-green {
   background-color: #7EB06D;
-  color: #0C5460;
+  color: #000000;
 }
 .bg-custom-yellow2 {
   background-color: #ffd000;
-  color: #778b00;
+  color: #000000;
 }.bg-custom-orange2 {
   background-color: #ff9800;
-  color: white;
+  color: #000000;
 }
 </style>
