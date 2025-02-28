@@ -1,40 +1,59 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
-import axios from "axios";
+import { ref, onMounted, watch } from "vue";
 
-const no2Level = ref(null);
-const errorMessage = ref("");
-const currentTime = ref("");
+const pollutants = ref({
+  no2: 0,
+  so2: 0,
+  o3: 0,
+});
+const lastUpdatedTime = ref(null);
+const pollutantsHourly = ref([]);
+const isLoading = ref(true);
+const errorMessage = ref(null);
+let updateInterval = null;
+const currentTime = ref('');  // Add currentTime ref
 
-const fetchNO2Level = async () => {
+// Function to fetch data
+const fetchPollutantData = async () => {
+  const apiKey = "a1bfffc563959672387f02e517ea1a60";
+  const lat = 19.0292;
+  const lon = 99.8976;
+
+  const now = new Date();
+  const end = Math.floor(now.getTime() / 1000);
+  const start = Math.floor(new Date(now.getTime() - 5 * 60 * 60 * 1000).getTime() / 1000);
+
+  const apiUrl = `https://api.openweathermap.org/data/2.5/air_pollution/history?lat=${lat}&lon=${lon}&start=${start}&end=${end}&appid=${apiKey}`;
+
   try {
-    const response = await axios.get("https://api.airvisual.com/v2/city?city=Phayao&state=Phayao&country=Thailand&key=fc0ddf1c-2092-4ed1-872b-ae41f5dcabeb", {
-      params: {
-        city: "Phayao",
-        state: "Phayao",
-        country: "Thailand",
-        key: "fc0ddf1c-2092-4ed1-872b-ae41f5dcabeb",
-      },
+    const response = await fetch(apiUrl);
+    if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูล AQI ได้");
+
+    const data = await response.json();
+    if (!data.list || data.list.length === 0) throw new Error("ไม่มีข้อมูลมลพิษ");
+
+    // แสดงข้อมูลมลพิษล่าสุด
+    pollutants.value.no2 = data.list[data.list.length - 1].components.no2;
+    pollutants.value.so2 = data.list[data.list.length - 1].components.so2;
+    pollutants.value.o3 = data.list[data.list.length - 1].components.o3;
+
+    // แสดงข้อมูลมลพิษรายชั่วโมงย้อนหลัง
+    pollutantsHourly.value = data.list.map((entry) => {
+      return {
+        time: new Date(entry.dt * 1000).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }),
+        no2: entry.components.no2,
+        so2: entry.components.so2,
+        o3: entry.components.o3,
+      };
     });
-
-    console.log(response.data); // 👀 Debug API response
-
-    if (response.data.status !== "success") {
-      throw new Error("API response error: " + response.data.status);
-    }
-
-    // เช็กว่าโครงสร้างข้อมูลถูกต้อง
-    if (!response.data.data || !response.data.data.current || !response.data.data.current.pollution) {
-      throw new Error("Invalid API response structure");
-    }
-
-    no2Level.value = response.data.data.current.pollution.no2;
   } catch (error) {
-    console.error("เกิดข้อผิดพลาด:", error);
-    errorMessage.value = "ไม่สามารถโหลดข้อมูล NO₂ ได้";
+    errorMessage.value = error.message;
+  } finally {
+    isLoading.value = false;
   }
 };
 
+// Function to update current time every second
 const updateTime = () => {
   currentTime.value = new Date().toLocaleString("th-TH", {
     weekday: "long",
@@ -48,15 +67,23 @@ const updateTime = () => {
   });
 };
 
-onMounted(() => {
-    fetchNO2Level();
-  updateTime(); // อัปเดตเวลาครั้งแรก
-  const timer = setInterval(updateTime, 1000); // อัปเดตทุก 1 วินาที
+// Start auto-update every second
+const startAutoUpdate = () => {
+  if (updateInterval) clearInterval(updateInterval);
+  updateInterval = setInterval(() => {
+    updateTime(); // Update time every second
+    fetchPollutantData(); // Update data every 5 minutes
+  }, 1000); // Update every second
+};
 
-  // ทำความสะอาด timer เมื่อ component ถูกถอดออก
-  onUnmounted(() => {
-    clearInterval(timer);
-  });
+watch(pollutants, () => {
+  console.log("อัปเดตค่ามลพิษ:", pollutants.value);
+});
+
+onMounted(() => {
+  updateTime();  // Initialize currentTime
+  fetchPollutantData();
+  startAutoUpdate();
 });
 
 </script>
@@ -72,15 +99,36 @@ onMounted(() => {
 
   <div class="container mx-auto p-4 space-y-6 relative -mt-20">
       <div class="bg-white shadow-2xl rounded-lg p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
-        <div class="p-4 rounded-2xl text-md font-bold w-[500px] h-[500px]">
-          <div class="font-bold bg-custom-gray p-4 h-[80px] w-[300px] mx-auto rounded">
-          <h1>ก๊าซไนโตรเจนไดออกไซด์</h1>
-          <p v-if="no2Level">NO₂ : {{ no2Level }} µg/m³</p>
-          <p v-if="errorMessage" class="text-red-500">{{ errorMessage }}</p>
-        </div>
+        <div class="p-4 rounded-2xl text-md font-bold w-[500px] h-[440px]">
+
+          <div class="left-[70px] font-bold bg-custom-gray p-4 h-[80px] w-[1280px] mx-auto rounded-full relative flex items-center justify-start mt-5">
+            <div class="absolute left-[25px] flex items-center justify-center h-[50px] w-[50px] rounded-full bg-custom-pink">
+              NO₂
+            </div>
+            <h1 class="ml-20">ก๊าซไนโตรเจนไดออกไซด์<br>NO₂</h1>
+            <p v-if="pollutants.no2 !== null" class="ml-auto mr-4">{{ pollutants.no2 }} mol/cm2</p>
+            <p v-if="errorMessage" class="text-red-500">{{ errorMessage }}</p>
+          </div>
+
+          <div class="left-[70px] font-bold bg-custom-gray p-4 h-[80px] w-[1280px] mx-auto rounded-full relative flex items-center justify-start mt-14">
+            <div class="absolute left-[25px] flex items-center justify-center h-[50px] w-[50px] rounded-full bg-custom-pink">
+              SO₂
+            </div>
+            <h1 class="ml-20">ก๊าซซัลเฟอร์ไดออกไซด์<br>SO₂</h1>
+            <p v-if="pollutants.so2 !== null" class="ml-auto mr-4">{{ pollutants.so2 }} mol/cm2</p>
+            <p v-if="errorMessage" class="text-red-500">{{ errorMessage }}</p>
+          </div>
+
+          <div class="left-[70px] font-bold bg-custom-gray p-4 h-[80px] w-[1280px] mx-auto rounded-full relative flex items-center justify-start mt-14">
+            <div class="absolute left-[25px] flex items-center justify-center h-[50px] w-[50px] rounded-full bg-custom-pink">
+              O₃
+            </div>
+            <h1 class="ml-20">ก๊าซโอโซน<br>O₃</h1>
+            <p v-if="pollutants.o3 !== null" class="ml-auto mr-4">{{ pollutants.o3 }} DU</p>
+            <p v-if="errorMessage" class="text-red-500">{{ errorMessage }}</p>
+          </div>
         </div>
       </div>
-      
   </div>
 
   <div class="fixed bottom-0 left-0 w-full h-[75px] bg-custom-gray text-white p-2 ">
@@ -100,13 +148,6 @@ onMounted(() => {
             <path d="M160 80c0-26.5 21.5-48 48-48l32 0c26.5 0 48 21.5 48 48l0 352c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48l0-352zM0 272c0-26.5 21.5-48 48-48l32 0c26.5 0 48 21.5 48 48l0 160c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48L0 272zM368 96l32 0c26.5 0 48 21.5 48 48l0 288c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48z"/></svg>
           <span>สถิติ</span>
         </button>
-      </router-link>
-      
-      <router-link to="/Homeview3">
-      <button class="flex flex-col items-center text-black font-bold mt-2">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" stroke-width="1.5" stroke="currentColor" class="size-7"> <path d="M384 476.1L192 421.2l0-385.3L384 90.8l0 385.3zm32-1.2l0-386.5L543.1 37.5c15.8-6.3 32.9 5.3 32.9 22.3l0 334.8c0 9.8-6 18.6-15.1 22.3L416 474.8zM15.1 95.1L160 37.2l0 386.5L32.9 474.5C17.1 480.8 0 469.2 0 452.2L0 117.4c0-9.8 6-18.6 15.1-22.3z"/></svg>
-        <span>แผนที่</span>
-      </button>
       </router-link>
 
       <router-link to="/Homeview4">
@@ -132,8 +173,12 @@ onMounted(() => {
 .header-background {
   width: 100%;
   height: 300px;
-  background-image: url('https://www.thaihealth.or.th/data/content/2019/10/50235/cms/newscms_thaihealth_c_cdelpqy24689.jpg');
+  background-image: url('https://media.thairath.co.th/image/q03GjDy2QTbVPe5TnA1CMU0OpFnw2hTcaYQGUUOB8OMe9vA1.jpg');
   background-size: cover;
   background-position: center;
+}
+.bg-custom-pink {
+  background-color: #E7B1E3;
+  color: #000000;
 }
 </style>
