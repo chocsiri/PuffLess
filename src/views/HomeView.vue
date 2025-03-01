@@ -1,6 +1,7 @@
 <script setup>  
 import { ref, onMounted, watch } from "vue";
 
+
 const pm25 = ref(null);
 const lastUpdatedTime = ref(null);
 const pm25Hourly = ref([]);

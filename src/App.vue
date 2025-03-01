@@ -2,14 +2,20 @@
 import { onMounted, ref } from 'vue';
 import { RouterView } from 'vue-router';
 
+// ประกาศฟังก์ชัน fetchCartData
+const fetchCartData = async () => {
+  const response = await fetch('/api/cart'); // URL ของ API ที่ใช้ดึงข้อมูล
+  const data = await response.json();
+  return data;
+};
+
 const cartData = ref([]);
 
+// ดึงข้อมูลเมื่อ component ถูก mounted
 onMounted(async () => {
-  // สมมติว่า fetchCartData() คือฟังก์ชันที่ดึงข้อมูลจาก API
   const data = await fetchCartData();
-  cartData.value = data;  
+  cartData.value = data;
 });
-
 </script>
 
 <template>
