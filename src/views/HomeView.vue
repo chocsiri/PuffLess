@@ -109,7 +109,7 @@ onMounted(() => {
  
   <div class="container mx-auto p-4 space-y-6 relative -mt-20">
     <!-- บล็อก PM2.5 เฉลี่ย 24 ชั่วโมง -->
-    <div class="bg-white shadow-2xl rounded-lg p-6 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
+    <div class="bg-white shadow-2xl rounded-lg p-6 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-[430px]">
       <h1 class="text-xl font-bold bg-custom-orange p-4 h-[58px] w-[350px] mx-auto text-center rounded-full">PM 2.5 เฉลี่ย 24 ชั่วโมง</h1>
       <div v-if="isLoading" class="text-gray-500">⏳ กำลังโหลดข้อมูล...</div>
       <div v-else-if="errorMessage" class="text-red-500">⚠️ {{ errorMessage }}</div>
@@ -118,8 +118,13 @@ onMounted(() => {
           <div class="flex items-center flex-col space-y-4">
             <img src="http://chihirowada.com/wp-content/uploads/2021/11/%E3%83%9E%E3%82%B9%E3%82%AF%EF%BC%91-229x300.png" 
                 alt="PM2.5" class="w-[100px] h-[120px]">
-                <div class="mt-5 p-2 bg-custom-orange text-black font-bold rounded-2xl w-[200px] h-[50px] flex items-center justify-center">
-                  <span>เริ่มมีผลต่อสุขภาพ</span>
+                <div class="mt-5 p-2 text-black font-bold rounded-2xl w-[200px] h-[50px] flex items-center justify-center"
+                    :class="{
+                    'bg-custom-green': pm25 <= 25,
+                    'bg-custom-yellow2': pm25 >= 37,
+                    'bg-custom-orange2': pm25 >= 75,
+                  }">
+                  {{ pm25 <= 25 ? 'คุณภาพอากาศดี' : pm25 >= 37 ? 'คุณภาพอากาศปานกลาง' : pm25 >= 75 ? 'เริ่มมีผลต่อสุขภาพ' : 'ไม่ดี' }}
                 </div>
           </div>
           <div class="text-right">
@@ -134,8 +139,8 @@ onMounted(() => {
     </div>
  
     <!-- PM2.5 รายชั่วโมง -->
-    <div class="bg-white shadow-2xl rounded-lg p-4 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
-      <h2 class="text-lg font-bold mb-4 bg-custom-orange p-4 h-[58px] w-[350px] mx-auto text-center rounded-full">PM 2.5 รายชั่วโมง (ug/m³)</h2>
+    <div class="bg-white shadow-2xl rounded-lg p-4 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-[370px]">
+      <h2 class="text-lg font-bold mt-4 mb-4 bg-custom-orange p-4 h-[58px] w-[350px] mx-auto text-center rounded-full">PM 2.5 รายชั่วโมง (ug/m³)</h2>
       <div class="flex justify-center gap-4">
         <div v-for="entry in pm25Hourly" :key="entry.time" 
             class="p-4 bg-custom-blue rounded-lg text-center transform transition-all duration-300 hover:scale-110 w-[200px] flex flex-col items-center">
@@ -153,8 +158,8 @@ onMounted(() => {
     </div>
  
     <!-- ลำดับค่าฝุ่น -->
-    <div class="bg-white shadow-2xl rounded-lg p-3 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-[320px]">
-      <h2 class="text-lg font-bold mb-4 text-center">ลำดับค่าฝุ่นเฉลี่ยรายชั่วโมงภายในมหาวิทยาลัยพะเยา</h2>
+    <div class="bg-white shadow-2xl rounded-lg p-3 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-[370px]">
+      <h2 class="text-lg mt-4 font-bold mb-4 text-center">ลำดับค่าฝุ่นเฉลี่ยรายชั่วโมงภายในมหาวิทยาลัยพะเยา</h2>
       
       <div class="flex justify-center">
         <div class="grid grid-cols-2 gap-6">
@@ -189,13 +194,6 @@ onMounted(() => {
           <span>สถิติ</span>
         </button>
       </router-link>
-      
-      <router-link to="/Homeview3">
-      <button class="flex flex-col items-center text-black font-bold mt-2">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" stroke-width="1.5" stroke="currentColor" class="size-7"> <path d="M384 476.1L192 421.2l0-385.3L384 90.8l0 385.3zm32-1.2l0-386.5L543.1 37.5c15.8-6.3 32.9 5.3 32.9 22.3l0 334.8c0 9.8-6 18.6-15.1 22.3L416 474.8zM15.1 95.1L160 37.2l0 386.5L32.9 474.5C17.1 480.8 0 469.2 0 452.2L0 117.4c0-9.8 6-18.6 15.1-22.3z"/></svg>
-        <span>แผนที่</span>
-      </button>
-      </router-link>
 
       <router-link to="/Homeview4">
       <button class="flex flex-col items-center text-black font-bold mt-2">
@@ -219,10 +217,20 @@ onMounted(() => {
 <style scoped>
 .header-background {
   width: 100%;
-  height: 300px;
-  background-image: url('https://www.thaihealth.or.th/data/content/2019/10/50235/cms/newscms_thaihealth_c_cdelpqy24689.jpg');
+  height: 400px;
+  background-image: url('https://media.thairath.co.th/image/q03GjDy2QTbVPe5TnA1CMU0OpFnw2hTcaYQGUUOB8OMe9vA1.jpg');
   background-size: cover;
   background-position: center;
 }
-
+.bg-custom-green {
+  background-color: #7EB06D;
+  color: #000000;
+}
+.bg-custom-yellow2 {
+  background-color: #ffd000;
+  color: #000000;
+}.bg-custom-orange2 {
+  background-color: #ff9800;
+  color: #000000;
+}
 </style>

@@ -48,25 +48,12 @@ const fetchPM25Data = async () => {
     });
 
     // การคำนวณค่า PM2.5 สำหรับตำแหน่งต่าง ๆ
-    const locations = [
-      { name: "คณะ ICT", lat: 19.0292, lon: 99.8976 },
-      { name: "หอใน", lat: 19.0245, lon: 99.8954 },
-      { name: "อาคารเรียน PKY", lat: 19.0276, lon: 99.8921 },
-      { name: "คณะวิศวกรรมศาสตร์", lat: 19.0304, lon: 99.8980 },
-    ];
-
-    const locationPromises = locations.map(async (location) => {
-      const apiUrlForLocation = `https://api.openweathermap.org/data/2.5/air_pollution/history?lat=${location.lat}&lon=${location.lon}&start=${start}&end=${end}&appid=${apiKey}`;
-      const response = await fetch(apiUrlForLocation);
-      const data = await response.json();
-      const pm25Values = data.list.map((entry) => entry.components.pm2_5);
-      const averagePm25 = pm25Values.reduce((acc, value) => acc + value, 0) / pm25Values.length;
-      return { name: location.name, value: averagePm25 };
-    });
-
-    // คำนวณค่าเฉลี่ย PM2.5 สำหรับแต่ละตำแหน่ง
-    pm25Locations.value = await Promise.all(locationPromises);
-
+    pm25Locations.value = [
+      { name: "คณะ ICT", value: 58.3 },
+      { name: "หอใน", value: 62.2 },
+      { name: "อาคารเรียน PKY", value: 51.9 },
+      { name: "คณะวิศวกรรมศาสตร์", value: 60.3 },
+    ].sort((a, b) => b.value - a.value);
   } catch (error) {
     errorMessage.value = error.message;
   } finally {
@@ -132,19 +119,25 @@ onMounted(() => {
     </div>
   </div>
 
-  <div class="container mx-auto p-4 space-y-6 relative -mt-20">
-    <div class="bg-white shadow-2xl rounded-lg p-6 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
-      <h2 class="text-lg font-bold mb-4 text-center">ประวัติค่า PM2.5 (รายวัน)</h2>
+  <div class="container mx-auto p-4 space-y-6 relative">
+    <div class="bg-white shadow-2xl rounded-lg p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-[660px]">
+      <h1 class="text-2xl font-bold ml-7 mt-5">ปริมาณฝุ่นย้อนหลังรายชั่วโมง</h1>
+      <h2 class="text-xl font-bold ml-7 mt-2">แม่กา เมืองพะเยา, พะเยา</h2>
+      <h2 class="text-lg font-bold mb-4 text-center mt-8">ประวัติค่า PM2.5 (รายชั่วโมง)</h2>
       <div class="w-full max-w-full mx-auto h-[400px]">
         <canvas ref="chartCanvas" class="w-full h-full"></canvas>
       </div>
     </div>
 
-    <div class="bg-white shadow-2xl rounded-lg p-3 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-[470px]">
-      <h2 class="text-lg font-bold mb-4 text-center">อันดับค่าเฉลี่ย<br>PM 2.5</h2>
+    <div class="bg-white shadow-2xl rounded-lg p-3 transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-[700px]">
+      <h2 class="text-lg font-bold mt-8 mb-4 text-center">อันดับค่าเฉลี่ย<br>PM 2.5</h2>
+      <div class="flex justify-between items-center mt-16 mb-4 font-bold">
+        <span class="ml-56 bg-custom-gray2 p-2 rounded-full">อันดับ</span>
+        <span class="mr-56 bg-custom-gray2 p-2 rounded-full">ug/m³</span>
+      </div>
       <div class="flex justify-center">
         <div class="space-y-2">
-          <div v-for="(location, index) in pm25Locations" :key="location.name" class="flex justify-between p-4 bg-custom-orange rounded-2xl text-md font-bold duration-300 hover:scale-105 w-[900px]">
+          <div v-for="(location, index) in pm25Locations" :key="location.name" class="flex justify-between p-4 bg-custom-orange rounded-2xl text-md font-bold duration-300 hover:scale-105 w-[1030px]">
             <span>{{ index + 1 }}: {{ location.name }}</span>
             <span class="font-bold text-lg">{{ location.value.toFixed(2) }}</span>
           </div>
@@ -171,13 +164,7 @@ onMounted(() => {
           <span>สถิติ</span>
         </button>
       </router-link>
-      
-      <router-link to="/Homeview3">
-      <button class="flex flex-col items-center text-black font-bold mt-2">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" stroke-width="1.5" stroke="currentColor" class="size-7"> <path d="M384 476.1L192 421.2l0-385.3L384 90.8l0 385.3zm32-1.2l0-386.5L543.1 37.5c15.8-6.3 32.9 5.3 32.9 22.3l0 334.8c0 9.8-6 18.6-15.1 22.3L416 474.8zM15.1 95.1L160 37.2l0 386.5L32.9 474.5C17.1 480.8 0 469.2 0 452.2L0 117.4c0-9.8 6-18.6 15.1-22.3z"/></svg>
-        <span>แผนที่</span>
-      </button>
-      </router-link>
+
 
       <router-link to="/Homeview4">
       <button class="flex flex-col items-center text-black font-bold mt-2">
@@ -202,7 +189,7 @@ onMounted(() => {
 .header-background {
   width: 100%;
   height: 300px;
-  background-image: url('https://www.thaihealth.or.th/data/content/2019/10/50235/cms/newscms_thaihealth_c_cdelpqy24689.jpg');
+  background-image: url('https://media.thairath.co.th/image/q03GjDy2QTbVPe5TnA1CMU0OpFnw2hTcaYQGUUOB8OMe9vA1.jpg');
   background-size: cover;
   background-position: center;
 }
@@ -220,5 +207,9 @@ onMounted(() => {
   
   color: #ffffff;
   padding: 15px;
+}
+.bg-custom-gray2 {
+  background-color: #D9D9D9;
+  color: rgb(0, 0, 0);
 }
 </style>
