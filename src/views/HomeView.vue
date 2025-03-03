@@ -122,10 +122,10 @@ onMounted(() => {
                 <div class="mt-5 p-2 text-black font-bold rounded-2xl w-[200px] h-[50px] flex items-center justify-center"
                     :class="{
                     'bg-custom-green': pm25 <= 25,
-                    'bg-custom-yellow': pm25 >= 37,
-                    'bg-custom-orange': pm25 >= 75,
+                    'bg-custom-yellow': pm25 > 25 && pm25 <= 37,
+                    'bg-custom-red': pm25 > 37 && pm25 <= 75
                   }">
-                  {{ pm25 <= 25 ? 'คุณภาพอากาศดี' : pm25 >= 37 ? 'คุณภาพอากาศปานกลาง' : pm25 >= 75 ? 'เริ่มมีผลต่อสุขภาพ' : 'ไม่ดี' }}
+                  {{ pm25 <= 25 ? 'คุณภาพอากาศดี' : pm25 > 25 && pm25 <= 37 ? 'คุณภาพอากาศปานกลาง' : pm25 > 37 && pm25 <= 75 ? 'เริ่มมีผลต่อสุขภาพ' : 'ไม่ดี' }}
                 </div>
           </div>
           <div class="text-right">
@@ -230,8 +230,8 @@ onMounted(() => {
 .bg-custom-yellow {
   background-color: #ffd000;
   color: #000000;
-}.bg-custom-orange {
-  background-color: #ff9800;
+}.bg-custom-red {
+  background-color: #ff4f4f;
   color: #000000;
 }
 </style>
