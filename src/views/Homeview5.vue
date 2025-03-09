@@ -66,6 +66,15 @@ import Chart from "chart.js/auto";
         <span>เกี่ยวกับเรา</span>
       </button>
     </router-link>
+    
+    <router-link to="/Login">
+        <button class="flex flex-col items-center text-black font-bold mt-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="black" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+          </svg>
+          <span>เข้าสู่ระบบ</span>
+        </button>
+      </router-link>
     </div>
   </div>
 </template>
