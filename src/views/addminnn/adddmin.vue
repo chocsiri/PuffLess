@@ -1,53 +1,122 @@
 <template>
-    <div>
-      <h2>Admin - กรอกค่า PM2.5</h2>
-      <form @submit.prevent="submitPM25">
-        <input type="number" v-model="pm25Value" placeholder="ค่า PM2.5" required />
-        <input type="text" v-model="location" placeholder="สถานที่" required />
-        <button type="submit">บันทึก</button>
-      </form>
-      <button @click="fetchPM25">โหลดค่าที่บันทึก</button>
+  <div class="admin-container">
+    <form @submit.prevent="submitPM25Data">
+      <h3 class="text-lg font-bold mb-2">PM2.5 Data</h3>
+      <input type="text" v-model="pm25Value" placeholder="Enter PM2.5 value" required />
+      <h3 class="text-lg font-bold mb-2">Location</h3>
+      <input type="text" v-model="location" placeholder="Enter location" required />
+      <button type="submit" class="btn">Submit Data</button>
+    </form>
+
+    <div class="pm25-list">
+      <h3 class="text-lg font-bold mt-4">Submitted PM2.5 Data</h3>
       <ul>
-        <li v-for="(item, index) in pm25Data" :key="index">
-          {{ item.location }}: {{ item.value }} µg/m³ ({{ item.timestamp }})
+        <li v-for="(data, index) in pm25Data" :key="index">
+          <span>{{ data.location }}: {{ data.pm25Value }} μg/m³</span>
+          <button @click="deleteData(index)" class="delete-btn">Delete</button>
         </li>
       </ul>
     </div>
-  </template>
-  
-  <script>
-  import axios from "axios";
-  
-  export default {
-    data() {
-      return {
-        pm25Value: "",
-        location: "",
-        token: localStorage.getItem("admin_token") || "",
-        pm25Data: [],
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      pm25Value: '',
+      location: '',
+      pm25Data: []
+    };
+  },
+  methods: {
+    submitPM25Data() {
+      const data = {
+        pm25Value: this.pm25Value,
+        location: this.location
       };
+      this.pm25Data.push(data);
+      this.pm25Value = '';
+      this.location = '';
     },
-    methods: {
-      async submitPM25() {
-        try {
-          await axios.post("http://localhost:8000/admin/pm25", 
-            { value: this.pm25Value, location: this.location }, 
-            { headers: { Authorization: `Bearer ${this.token}` } }
-          );
-          alert("บันทึกค่า PM2.5 เรียบร้อย!");
-        } catch (error) {
-          alert("เกิดข้อผิดพลาด: " + error.response.data.detail);
-        }
-      },
-      async fetchPM25() {
-        try {
-          const response = await axios.get("http://localhost:8000/pm25");
-          this.pm25Data = response.data;
-        } catch (error) {
-          alert("เกิดข้อผิดพลาด: " + error);
-        }
-      },
-    },
-  };
-  </script>
-  
+    deleteData(index) {
+      this.pm25Data.splice(index, 1);
+    }
+  }
+};
+</script>
+
+<style scoped>
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.8);
+  width: 400px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+input {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 50px;
+  width: 100%;
+}
+
+button {
+  padding: 10px;
+  background-color: #EB922C;
+  color: black;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  width: 100%;
+}
+
+button:hover {
+  background-color: #c06600;
+}
+
+.pm25-list {
+  margin-top: 40px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.pm25-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.pm25-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #f4f4f4;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+.delete-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
+}
+</style>

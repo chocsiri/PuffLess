@@ -1,47 +1,46 @@
+<template>
+  <div class="login-container">
+    <form @submit.prevent="login">
+      <h3 class="text-lg font-bold mb-2">Username</h3>
+      <input type="text" v-model="username" placeholder="Enter your username" required />
+      <h3 class="text-lg font-bold mb-2">Password</h3>
+      <input type="password" v-model="password" placeholder="Enter your password" required />
+      <button type="submit" class="btn">Login</button>
+    </form>
+  </div>
+</template>
+
 <script>
-import axios from "axios";
+import axios from 'axios';
 
 export default {
   data() {
-    return { username: "", password: "" };
+    return {
+      username: 'admin',
+      password: '123456',
+    };
   },
   methods: {
     async login() {
       try {
-        // ส่งข้อมูลล็อกอินไปที่ API
-        const response = await axios.post("http://localhost:8000/admin/login", {
+        const response = await axios.post('http://localhost:8000/api/login', {
           username: this.username,
-          password: this.password,
+          password: this.password
         });
-        
-        // ถ้าล็อกอินสำเร็จ ให้เก็บ token ใน localStorage และนำทางไปที่หน้า admin
-        localStorage.setItem("admin_token", response.data.token);
-        this.$router.push("/admin"); // เปลี่ยนหน้าไปที่ /admin
+        if (response.data.token) {
+          localStorage.setItem('admin_token', response.data.token);
+          this.$router.push('/admin');
+        } else {
+          throw new Error('No token returned');
+        }
       } catch (error) {
-        // ถ้าล็อกอินไม่สำเร็จ แสดงข้อความผิดพลาด
-        alert("ล็อกอินไม่สำเร็จ! กรุณาตรวจสอบชื่อผู้ใช้และรหัสผ่าน");
+        console.error('Login error:', error);
+        alert('Login failed, please check your credentials.');
       }
-    },
-  },
+    }
+  }
 };
 </script>
-
-<template>
-  <div class="login-container">
-    <div>
-      <svg xmlns="http://www.w3.org/2000/svg" fill="black" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-12">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-      </svg>
-    </div>
-    <form @submit.prevent="login">
-      <h3 class="text-lg font-bold mb-2">User Email</h3>
-      <input type="text" v-model="username" placeholder="email" required />
-      <h3 class="text-lg font-bold mb-2">Password</h3>
-      <input type="password" v-model="password" placeholder="password" required />
-      <button type="submit" class="text-lg font-bold">Sign in</button>
-    </form>
-  </div>
-</template>
 
 <style scoped>
 .login-container {
@@ -50,7 +49,7 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: url("https://media.thairath.co.th/image/q03GjDy2QTbVPe5TnA1CMU0OpFnw2hTcaYQGUUOB8OMe9vA1.jpg") no-repeat center center/cover;
+  background: url('https://media.thairath.co.th/image/q03GjDy2QTbVPe5TnA1CMU0OpFnw2hTcaYQGUUOB8OMe9vA1.jpg') no-repeat center center/cover;
 }
 
 form {
@@ -58,7 +57,9 @@ form {
   flex-direction: column;
   padding: 20px;
   border-radius: 8px;
-  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  width: 400px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 input {
@@ -66,18 +67,17 @@ input {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 50px;
-  width: 400px;
+  width: 100%;
 }
 
 button {
   padding: 10px;
   background-color: #EB922C;
-  color: rgb(0, 0, 0);
+  color: black;
   border: none;
   border-radius: 50px;
   cursor: pointer;
-  width: 170px;
-  margin-top: 20px;
+  width: 100%;
 }
 
 button:hover {
