@@ -148,13 +148,13 @@ export default {
   name: 'DashboardView',
   data() {
     return {
-      // ข้อมูลสถานที่ทั้ง 6 จุด
+      // ข้อมูลสถานที่ทั้ง 4 จุด
       locations: [
-        'คณะ ICT', 
-        'โรงพยาบาลมหาวิทยาลัยพะเยา', 
-        'คณะสาธารณะสุขศาสตร์', 
-        'อาคารเรียนรวม(PKY)', 
-        'อาคารพระอุบาลี(UB)', 
+        'หอใน',
+        'คณะวิศวกรรมศาสตร์',
+        'คณะ ICT',
+        'อาคารเรียน PKY',
+        'อาคารพระอุบาลี',
         'UP Dorm'
       ],
       // ข้อมูลใหม่ที่จะเพิ่ม
@@ -229,22 +229,26 @@ export default {
     generateSampleData() {
       const sampleData = []
       
+      // กำหนดค่า PM2.5 ตามข้อมูลจริง
+      const pm25Values = {
+        'หอใน': 62.2,
+        'คณะวิศวกรรมศาสตร์': 60.3,
+        'คณะ ICT': 58.3,
+        'อาคารเรียน PKY': 51.9
+      }
+      
       // สร้างข้อมูลตัวอย่างสำหรับแต่ละสถานที่
-      this.locations.forEach((location, index) => {
-        // สร้างข้อมูลย้อนหลัง 7 วัน
-        for (let i = 0; i < 7; i++) {
-          const date = new Date()
-          date.setDate(date.getDate() - i)
-          
-          sampleData.push({
-            id: sampleData.length + 1,
-            location: location,
-            pm25_value: Math.floor(Math.random() * 50) + 10, // สุ่มค่า PM2.5 ระหว่าง 10-60
-            temperature: Math.floor(Math.random() * 10) + 25, // สุ่มอุณหภูมิระหว่าง 25-35
-            humidity: Math.floor(Math.random() * 30) + 50, // สุ่มความชื้นระหว่าง 50-80
-            timestamp: date.toISOString()
-          })
-        }
+      this.locations.forEach((location) => {
+        const date = new Date()
+        
+        sampleData.push({
+          id: sampleData.length + 1,
+          location: location,
+          pm25_value: pm25Values[location],
+          temperature: Math.floor(Math.random() * 10) + 25, // สุ่มอุณหภูมิระหว่าง 25-35
+          humidity: Math.floor(Math.random() * 30) + 50, // สุ่มความชื้นระหว่าง 50-80
+          timestamp: date.toISOString()
+        })
       })
       
       this.airQualityData = sampleData

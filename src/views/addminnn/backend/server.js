@@ -1,128 +1,18 @@
-const express = require('express');
-const cors = require('cors');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const db = require('./config');
-require('dotenv').config();
+let params = [];
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+if (location) {
+  query += ' WHERE location = ?';
+  params.push(location);
+}
 
-const pool = db.createPool();
+query += ' ORDER BY timestamp DESC';
 
-// Middleware ตรวจสอบ Token
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: 'กรุณาเข้าสู่ระบบ' });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Token ไม่ถูกต้อง' });
-    }
-    req.user = user;
-    next();
-  });
-};
-
-// API สำหรับ Login
-app.post('/api/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const [users] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
-
-    if (users.length === 0) {
-      return res.status(401).json({ error: 'ไม่พบผู้ใช้งาน' });
-    }
-
-    const user = users[0];
-    const validPassword = await bcrypt.compare(password, user.password);
-
-    if (!validPassword) {
-      return res.status(401).json({ error: 'รหัสผ่านไม่ถูกต้อง' });
-    }
-
-    const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการเข้าสู่ระบบ:', error);
-    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ' });
-  }
-});
-
-// API บันทึกข้อมูลคุณภาพอากาศ
-app.post('/api/air-quality', authenticateToken, async (req, res) => {
-  try {
-    const { location, pm25_value, temperature, humidity } = req.body;
-    
-    await db.withTransaction(pool, async (conn) => {
-      // บันทึกข้อมูล location ถ้ายังไม่มี
-      await conn.query(
-        'INSERT IGNORE INTO locations (name) VALUES (?)',
-        [location]
-      );
-
-      // ดึง location_id
-      const [locations] = await conn.query(
-        'SELECT id FROM locations WHERE name = ?',
-        [location]
-      );
-      const location_id = locations[0].id;
-
-      // บันทึกข้อมูลคุณภาพอากาศ
-      await conn.query(
-        'INSERT INTO air_quality_data (location, pm25_value, temperature, humidity) VALUES (?, ?, ?, ?)',
-        [location, pm25_value, temperature, humidity]
-      );
-
-      // ตรวจสอบและสร้าง alert ถ้า PM2.5 สูงเกินไป
-      if (pm25_value > 50) {
-        await conn.query(
-          'INSERT INTO alerts (location_id, alert_type, message, severity) VALUES (?, ?, ?, ?)',
-          [location_id, 'high_pm25', `ค่า PM2.5 สูงเกินมาตรฐาน (${pm25_value})`, 'high']
-        );
-      }
-    });
-
-    res.json({ message: 'บันทึกข้อมูลสำเร็จ' });
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error);
-    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
-  }
-});
-
-// API ดึงข้อมูลคุณภาพอากาศ
-app.get('/api/air-quality', async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const location = req.query.location;
-
-    let query = 'SELECT * FROM air_quality_data';
-    let params = [];
-
-    if (location) {
-      query += ' WHERE location = ?';
-      params.push(location);
-    }
-
-    query += ' ORDER BY timestamp DESC';
-
-    const result = await db.fetchWithPagination(pool, query, params, page, limit);
-    res.json(result);
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error);
-    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูล' });
-  }
+const result = await db.fetchWithPagination(pool, query, params, page, limit);
+res.json(result);
+} catch (error) {
+  console.error('เกิดข้อผิดพลาดในการดึงข้อมูล:', error);
+  res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูล' });
+}
 });
 
 // API ดึงข้อมูล alerts
@@ -149,6 +39,105 @@ app.get('/health', async (req, res) => {
     res.json({ status: 'ok', message: 'ระบบทำงานปกติ' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'ไม่สามารถเชื่อมต่อกับฐานข้อมูลได้' });
+  }
+});
+
+// API เพิ่มข้อมูลสถานที่แบบเป็นชุด (ไม่ต้องยืนยันตัวตนสำหรับการทดสอบ)
+app.post('/api/locations/setup', async (req, res) => {
+  try {
+    const locations = [
+      'หอใน',
+      'คณะวิศวกรรมศาสตร์',
+      'คณะ ICT',
+      'อาคารเรียน PKY',
+      'สำนักงานอธิการบดี',
+      'โรงอาหาร',
+      'หอสมุด',
+      'ศูนย์การแพทย์'
+    ];
+
+    const connection = await pool.getConnection();
+    
+    try {
+      await connection.beginTransaction();
+      
+      // เพิ่มข้อมูลสถานที่ทีละรายการ
+      for (const locationName of locations) {
+        // ตรวจสอบว่าสถานที่มีอยู่แล้วหรือไม่
+        const [existingLocations] = await connection.query(
+          'SELECT id FROM locations WHERE name = ?',
+          [locationName]
+        );
+        
+        if (existingLocations.length === 0) {
+          await connection.query(
+            'INSERT INTO locations (name, latitude, longitude) VALUES (?, ?, ?)',
+            [locationName, 19.0 + Math.random() * 0.05, 99.9 + Math.random() * 0.05]
+          );
+        }
+      }
+      
+      await connection.commit();
+      res.status(201).json({ message: 'เพิ่มข้อมูลสถานที่เรียบร้อยแล้ว' });
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error('เกิดข้อผิดพลาดในการเพิ่มข้อมูลสถานที่:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเพิ่มข้อมูลสถานที่' });
+  }
+});
+
+// API สร้างข้อมูล PM2.5 จำลองสำหรับสถานที่ทั้งหมด (ไม่ต้องยืนยันตัวตนสำหรับการทดสอบ)
+app.post('/api/air-quality/sample', async (req, res) => {
+  try {
+    // ดึงข้อมูลสถานที่ทั้งหมด
+    const [locations] = await pool.query('SELECT id, name FROM locations');
+    
+    if (locations.length === 0) {
+      return res.status(404).json({ error: 'ไม่พบข้อมูลสถานที่' });
+    }
+    
+    const connection = await pool.getConnection();
+    
+    try {
+      await connection.beginTransaction();
+      
+      // สร้างข้อมูลย้อนหลัง 24 ชั่วโมง
+      const now = new Date();
+      
+      for (const location of locations) {
+        const baseValue = 15 + Math.random() * 30; // ค่าฐาน PM2.5 ระหว่าง 15-45
+        
+        for (let i = 0; i < 24; i++) {
+          const timestamp = new Date(now);
+          timestamp.setHours(now.getHours() - i);
+          
+          // ค่า PM2.5 มีการเปลี่ยนแปลงไม่เกิน 20% จากค่าฐาน
+          const variation = baseValue * (0.8 + Math.random() * 0.4);
+          const pm25Value = parseFloat(variation.toFixed(2));
+          
+          await connection.query(
+            'INSERT INTO air_quality_data (location_id, location, pm25_value, timestamp) VALUES (?, ?, ?, ?)',
+            [location.id, location.name, pm25Value, timestamp]
+          );
+        }
+      }
+      
+      await connection.commit();
+      res.status(201).json({ message: 'สร้างข้อมูล PM2.5 จำลองเรียบร้อยแล้ว' });
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error('เกิดข้อผิดพลาดในการสร้างข้อมูล PM2.5 จำลอง:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการสร้างข้อมูล PM2.5 จำลอง' });
   }
 });
 

@@ -19,6 +19,39 @@ const errorMessage = ref(null);
 let updateIntervalPM25 = null;
 let updateIntervalTime = null;
 
+// เพิ่มฟังก์ชันสำหรับดึงข้อมูลจาก localStorage
+const loadPM25LocationsFromDB = () => {
+  try {
+    const savedData = localStorage.getItem('airQualityData');
+    if (savedData) {
+      const data = JSON.parse(savedData);
+      
+      // สร้าง Map เพื่อเก็บค่าล่าสุดของแต่ละสถานที่
+      const locationMap = new Map();
+      
+      // วนลูปข้อมูลเพื่อหาค่าล่าสุดของแต่ละสถานที่
+      data.forEach(item => {
+        const existingData = locationMap.get(item.location);
+        if (!existingData || new Date(item.timestamp) > new Date(existingData.timestamp)) {
+          locationMap.set(item.location, item);
+        }
+      });
+      
+      // แปลงข้อมูลให้อยู่ในรูปแบบที่ต้องการ
+      const locations = Array.from(locationMap.values()).map(item => ({
+        name: item.location,
+        value: item.pm25_value
+      }));
+      
+      // เรียงลำดับตามค่า PM2.5 จากมากไปน้อย
+      pm25Locations.value = locations.sort((a, b) => b.value - a.value);
+    }
+  } catch (error) {
+    console.error('Error loading PM2.5 locations:', error);
+    pm25Locations.value = [];
+  }
+};
+
 // ฟังก์ชันดึงข้อมูล PM2.5
 const fetchPM25Data = async () => {
   const apiKey = "a1bfffc563959672387f02e517ea1a60";
@@ -61,12 +94,9 @@ const fetchPM25Data = async () => {
       };
     });
 
-    pm25Locations.value = [
-      { name: "คณะ ICT", value: 58.3 },
-      { name: "หอใน", value: 62.2 },
-      { name: "อาคารเรียน PKY", value: 51.9 },
-      { name: "คณะวิศวกรรมศาสตร์", value: 60.3 },
-    ].sort((a, b) => b.value - a.value);
+    // เรียกใช้ฟังก์ชันโหลดข้อมูลจาก localStorage
+    loadPM25LocationsFromDB();
+    
   } catch (error) {
     errorMessage.value = error.message;
   } finally {
@@ -113,6 +143,13 @@ const navigateToLoginOrDashboard = () => {
 onMounted(() => {
   fetchPM25Data();
   startAutoUpdate();
+  
+  // เพิ่ม event listener สำหรับการเปลี่ยนแปลงใน localStorage
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'airQualityData') {
+      loadPM25LocationsFromDB();
+    }
+  });
 });
 
 </script>
@@ -207,7 +244,7 @@ onMounted(() => {
       </router-link>
      
      
-      <router-link to="/HomeView2" class="no-underline">
+      <router-link to="/Homeview2" class="no-underline">
         <button class="flex flex-col items-center text-black font-bold mt-2">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" stroke-width="1.5" stroke="currentColor" class="size-7">
             <path d="M160 80c0-26.5 21.5-48 48-48l32 0c26.5 0 48 21.5 48 48l0 352c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48l0-352zM0 272c0-26.5 21.5-48 48-48l32 0c26.5 0 48 21.5 48 48l0 160c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48L0 272zM368 96l32 0c26.5 0 48 21.5 48 48l0 288c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48z"/></svg>
@@ -215,7 +252,7 @@ onMounted(() => {
         </button>
       </router-link>
 
-      <router-link to="/HomeView4" class="no-underline">
+      <router-link to="/Homeview4" class="no-underline">
         <button class="flex flex-col items-center text-black font-bold mt-2">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" stroke-width="1.5" stroke="currentColor" class="size-7"> 
             <path d="M32 144c0 79.5 64.5 144 144 144l123.3 0c22.6 19.9 52.2 32 84.7 32s62.1-12.1 84.7-32l27.3 0c61.9 0 112-50.1 112-112s-50.1-112-112-112c-10.7 0-21 1.5-30.8 4.3C443.8 27.7 401.1 0 352 0c-32.6 0-62.4 12.2-85.1 32.3C242.1 12.1 210.5 0 176 0C96.5 0 32 64.5 32 144zM616 368l-336 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l336 0c13.3 0 24-10.7 24-24s-10.7-24-24-24zm-64 96l-112 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24zm-192 0L24 464c-13.3 0-24 10.7-24 24s10.7 24 24 24l336 0c13.3 0 24-10.7 24-24s-10.7-24-24-24zM224 392c0-13.3-10.7-24-24-24L96 368c-13.3 0-24 10.7-24 24s10.7 24 24 24l104 0c13.3 0 24-10.7 24-24z"/></svg>
@@ -223,7 +260,7 @@ onMounted(() => {
         </button>
       </router-link>
 
-      <router-link to="/HomeView5" class="no-underline">
+      <router-link to="/Homeview5" class="no-underline">
         <button class="flex flex-col items-center text-black font-bold mt-2">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z"/></svg>
