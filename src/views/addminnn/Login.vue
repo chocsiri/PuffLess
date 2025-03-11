@@ -35,7 +35,7 @@ export default {
         console.log('Login response:', response.data);  // Debug log
         if (response.data.token) {
           localStorage.setItem('admin_token', response.data.token);
-          this.$router.push('/admin');
+          this.$router.push('/admin');   
         } else {
           throw new Error('No token returned');
         }

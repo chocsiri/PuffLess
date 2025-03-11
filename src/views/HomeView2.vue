@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, onUnmounted } from "vue";
 import Chart from "chart.js/auto";
+import axios from "axios";
 
 const pm25 = ref(null);
 const lastUpdatedTime = ref(null); // เก็บเวลาที่อัปเดตล่าสุด
@@ -10,6 +11,8 @@ const isLoading = ref(true);
 const errorMessage = ref(null);
 const chartCanvas = ref(null);
 let chartInstance = null; // เก็บ instance ของกราฟ
+let updateIntervalPM25 = null;
+let updateIntervalTime = null;
 
 const fetchPM25Data = async () => {
   const apiKey = "a1bfffc563959672387f02e517ea1a60";
@@ -48,16 +51,28 @@ const fetchPM25Data = async () => {
     });
 
     // การคำนวณค่า PM2.5 สำหรับตำแหน่งต่าง ๆ
-    pm25Locations.value = [
-      { name: "คณะ ICT", value: 58.3 },
-      { name: "หอใน", value: 62.2 },
-      { name: "อาคารเรียน PKY", value: 51.9 },
-      { name: "คณะวิศวกรรมศาสตร์", value: 60.3 },
-    ].sort((a, b) => b.value - a.value);
+    try {
+      const response = await axios.get('http://localhost:8000/pm25');
+      const latestData = response.data.reduce((acc, curr) => {
+        if (!acc[curr.location] || new Date(curr.timestamp) > new Date(acc[curr.location].timestamp)) {
+          acc[curr.location] = curr;
+        }
+        return acc;
+      }, {});
+
+      pm25Locations.value = [
+        { name: "หอใน", value: latestData["หอใน"]?.value || 0 },
+        { name: "คณะ ICT", value: latestData["คณะ ICT"]?.value || 0 },
+        { name: "คณะวิศวกรรมศาสตร์", value: latestData["คณะวิศวกรรมศาสตร์"]?.value || 0 },
+        { name: "อาคารเรียน PKY", value: latestData["อาคารเรียน PKY"]?.value || 0 },
+      ].sort((a, b) => b.value - a.value);
+    } catch (error) {
+      console.error('Error fetching PM2.5 data:', error);
+      errorMessage.value = 'ไม่สามารถดึงข้อมูล PM2.5 ได้';
+    }
   } catch (error) {
-    errorMessage.value = error.message;
-  } finally {
-    isLoading.value = false;
+    console.error('Error fetching PM2.5 data:', error);
+    errorMessage.value = 'ไม่สามารถดึงข้อมูล PM2.5 ได้';
   }
 };
 
@@ -102,12 +117,28 @@ const renderChart = () => {
     },
   });
 };
+
 watch(pm25History, () => {
   renderChart();
 });
 
+const startAutoUpdate = () => {
+  fetchPM25Data();
+  updateIntervalPM25 = setInterval(fetchPM25Data, 5 * 60 * 1000);
+  updateIntervalTime = setInterval(() => {
+    fetchPM25Data();
+  }, 5 * 60 * 1000);
+};
+
 onMounted(() => {
-  fetchPM25Data().then(() => renderChart());
+  fetchPM25Data();
+  startAutoUpdate();
+});
+
+// ทำความสะอาด interval เมื่อ component ถูกทำลาย
+onUnmounted(() => {
+  if (updateIntervalPM25) clearInterval(updateIntervalPM25);
+  if (updateIntervalTime) clearInterval(updateIntervalTime);
 });
 </script>
 
