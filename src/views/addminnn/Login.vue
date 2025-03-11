@@ -23,10 +23,16 @@ export default {
   methods: {
     async login() {
       try {
-        const response = await axios.post('http://localhost:8000/api/login', {
+        console.log('Attempting login with:', { username: this.username, password: this.password });  // Debug log
+        const response = await axios.post('http://localhost:8000/admin/login', {
           username: this.username,
           password: this.password
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
+        console.log('Login response:', response.data);  // Debug log
         if (response.data.token) {
           localStorage.setItem('admin_token', response.data.token);
           this.$router.push('/admin');
@@ -34,8 +40,13 @@ export default {
           throw new Error('No token returned');
         }
       } catch (error) {
-        console.error('Login error:', error);
-        alert('Login failed, please check your credentials.');
+        console.error('Login error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          config: error.config
+        });
+        alert(error.response?.data?.detail || 'Login failed, please check your credentials.');
       }
     }
   }
