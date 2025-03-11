@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch, onUnmounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import Chart from "chart.js/auto";
 import axios from "axios";
 
@@ -11,8 +11,6 @@ const isLoading = ref(true);
 const errorMessage = ref(null);
 const chartCanvas = ref(null);
 let chartInstance = null; // เก็บ instance ของกราฟ
-let updateIntervalPM25 = null;
-let updateIntervalTime = null;
 
 const fetchPM25Data = async () => {
   const apiKey = "a1bfffc563959672387f02e517ea1a60";
@@ -122,23 +120,8 @@ watch(pm25History, () => {
   renderChart();
 });
 
-const startAutoUpdate = () => {
-  fetchPM25Data();
-  updateIntervalPM25 = setInterval(fetchPM25Data, 5 * 60 * 1000);
-  updateIntervalTime = setInterval(() => {
-    fetchPM25Data();
-  }, 5 * 60 * 1000);
-};
-
 onMounted(() => {
-  fetchPM25Data();
-  startAutoUpdate();
-});
-
-// ทำความสะอาด interval เมื่อ component ถูกทำลาย
-onUnmounted(() => {
-  if (updateIntervalPM25) clearInterval(updateIntervalPM25);
-  if (updateIntervalTime) clearInterval(updateIntervalTime);
+  fetchPM25Data().then(() => renderChart());
 });
 </script>
 

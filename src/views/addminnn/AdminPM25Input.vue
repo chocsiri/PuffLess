@@ -1,5 +1,15 @@
 <template>
   <div class="admin-pm25-input">
+
+    <router-link to="/admin" class="back-button">
+      <button class="absolute top-6 left-6 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transition-all duration-300 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span class="text-gray-700 text-lg font-medium"></span>
+      </button>
+    </router-link>
+
     <div class="container mx-auto px-4 py-8">
       <div class="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
         <h2 class="text-2xl font-bold text-gray-800 mb-6">บันทึกค่า PM2.5</h2>

@@ -1,6 +1,22 @@
 <template>
   <div class="admin-dashboard">
     <div class="container mx-auto px-4 py-8">
+      <!-- Navigation Bar -->
+      <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-lg">
+        <router-link to="/" class="flex items-center text-gray-700 hover:text-gray-900 transition-all duration-300">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span class="text-lg font-medium">กลับหน้าหลัก</span>
+        </router-link>
+        <button
+          @click="logout"
+          class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-all duration-300 text-lg font-medium hover:shadow-lg"
+        >
+          ออกจากระบบ
+        </button>
+      </div>
+
       <div class="bg-white rounded-lg shadow-lg p-6">
         <h1 class="text-2xl font-bold text-gray-800 mb-6">แผงควบคุมผู้ดูแลระบบ</h1>
         
@@ -16,14 +32,6 @@
           
           <!-- เพิ่ม Quick Actions อื่นๆ ตามต้องการ -->
         </div>
-
-        <!-- Logout Button -->
-        <button
-          @click="logout"
-          class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-        >
-          ออกจากระบบ
-        </button>
       </div>
     </div>
   </div>
@@ -35,7 +43,7 @@ export default {
   methods: {
     logout() {
       localStorage.removeItem('admin_token');
-      this.$router.push('/Login');
+      this.$router.push('/');
     }
   }
 };
