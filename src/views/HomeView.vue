@@ -1,6 +1,14 @@
 <script setup>  
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
+import { useRouter } from "vue-router";
 
+// เพิ่ม router
+const router = useRouter();
+
+// เพิ่ม computed property เพื่อตรวจสอบการล็อกอิน
+const isLoggedIn = computed(() => {
+  return localStorage.getItem('user') !== null;
+});
 
 const pm25 = ref(null);
 const lastUpdatedTime = ref(null);
@@ -91,6 +99,17 @@ const startAutoUpdate = () => {
   updateIntervalTime = setInterval(updateTime, 1000); // อัปเดตเวลา
 };
 
+// ฟังก์ชันสำหรับนำทางไปยังหน้า Login หรือ Dashboard
+const navigateToLoginOrDashboard = () => {
+  if (isLoggedIn.value) {
+    // ถ้าล็อกอินแล้ว ไปที่หน้า Dashboard
+    window.location.href = '/addminnn/Dashboard';
+  } else {
+    // ถ้ายังไม่ได้ล็อกอิน ไปที่หน้า Login
+    window.location.href = '/addminnn/Login';
+  }
+};
+
 onMounted(() => {
   fetchPM25Data();
   startAutoUpdate();
@@ -179,16 +198,16 @@ onMounted(() => {
  
   <div class="fixed bottom-0 left-0 w-full h-[75px] bg-custom-gray text-white p-2 ">
     <div class="flex justify-around">
-      <router-link to="/">
-      <button class="flex flex-col items-center text-custom-blue2 font-bold mt-2">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" stroke-width="1.5" stroke="currentColor" class="size-7" fill="#0E0069">
-          <path d="M543.8 287.6c17 0 32-14 32-32.1c1-9-3-17-11-24L512 185l0-121c0-17.7-14.3-32-32-32l-32 0c-17.7 0-32 14.3-32 32l0 36.7L309.5 7c-6-5-14-7-21-7s-15 1-22 8L10 231.5c-7 7-10 15-10 24c0 18 14 32.1 32 32.1l32 0 0 69.7c-.1 .9-.1 1.8-.1 2.8l0 112c0 22.1 17.9 40 40 40l16 0c1.2 0 2.4-.1 3.6-.2c1.5 .1 3 .2 4.5 .2l31.9 0 24 0c22.1 0 40-17.9 40-40l0-24 0-64c0-17.7 14.3-32 32-32l64 0c17.7 0 32 14.3 32 32l0 64 0 24c0 22.1 17.9 40 40 40l24 0 32.5 0c1.4 0 2.8 0 4.2-.1c1.1 .1 2.2 .1 3.3 .1l16 0c22.1 0 40-17.9 40-40l0-16.2c.3-2.6 .5-5.3 .5-8.1l-.7-160.2 32 0z"/></svg>
-        <span>หน้าหลัก</span>
-      </button>
-    </router-link>
+      <router-link to="/" class="no-underline">
+        <button class="flex flex-col items-center text-custom-blue2 font-bold mt-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" stroke-width="1.5" stroke="currentColor" class="size-7" fill="#0E0069">
+            <path d="M543.8 287.6c17 0 32-14 32-32.1c1-9-3-17-11-24L512 185l0-121c0-17.7-14.3-32-32-32l-32 0c-17.7 0-32 14.3-32 32l0 36.7L309.5 7c-6-5-14-7-21-7s-15 1-22 8L10 231.5c-7 7-10 15-10 24c0 18 14 32.1 32 32.1l32 0 0 69.7c-.1 .9-.1 1.8-.1 2.8l0 112c0 22.1 17.9 40 40 40l16 0c1.2 0 2.4-.1 3.6-.2c1.5 .1 3 .2 4.5 .2l31.9 0 24 0c22.1 0 40-17.9 40-40l0-24 0-64c0-17.7 14.3-32 32-32l64 0c17.7 0 32 14.3 32 32l0 64 0 24c0 22.1 17.9 40 40 40l24 0 32.5 0c1.4 0 2.8 0 4.2-.1c1.1 .1 2.2 .1 3.3 .1l16 0c22.1 0 40-17.9 40-40l0-16.2c.3-2.6 .5-5.3 .5-8.1l-.7-160.2 32 0z"/></svg>
+          <span>หน้าหลัก</span>
+        </button>
+      </router-link>
      
      
-      <router-link to="/Homeview2">
+      <router-link to="/HomeView2" class="no-underline">
         <button class="flex flex-col items-center text-black font-bold mt-2">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" stroke-width="1.5" stroke="currentColor" class="size-7">
             <path d="M160 80c0-26.5 21.5-48 48-48l32 0c26.5 0 48 21.5 48 48l0 352c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48l0-352zM0 272c0-26.5 21.5-48 48-48l32 0c26.5 0 48 21.5 48 48l0 160c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48L0 272zM368 96l32 0c26.5 0 48 21.5 48 48l0 288c0 26.5-21.5 48-48 48l-32 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48z"/></svg>
@@ -196,28 +215,29 @@ onMounted(() => {
         </button>
       </router-link>
 
-      <router-link to="/Homeview4">
-      <button class="flex flex-col items-center text-black font-bold mt-2">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" stroke-width="1.5" stroke="currentColor" class="size-7"> 
-          <path d="M32 144c0 79.5 64.5 144 144 144l123.3 0c22.6 19.9 52.2 32 84.7 32s62.1-12.1 84.7-32l27.3 0c61.9 0 112-50.1 112-112s-50.1-112-112-112c-10.7 0-21 1.5-30.8 4.3C443.8 27.7 401.1 0 352 0c-32.6 0-62.4 12.2-85.1 32.3C242.1 12.1 210.5 0 176 0C96.5 0 32 64.5 32 144zM616 368l-336 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l336 0c13.3 0 24-10.7 24-24s-10.7-24-24-24zm-64 96l-112 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24zm-192 0L24 464c-13.3 0-24 10.7-24 24s10.7 24 24 24l336 0c13.3 0 24-10.7 24-24s-10.7-24-24-24zM224 392c0-13.3-10.7-24-24-24L96 368c-13.3 0-24 10.7-24 24s10.7 24 24 24l104 0c13.3 0 24-10.7 24-24z"/></svg>
-        <span>สารมลพิษอื่นๆ</span>
-      </button>
+      <router-link to="/HomeView4" class="no-underline">
+        <button class="flex flex-col items-center text-black font-bold mt-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" stroke-width="1.5" stroke="currentColor" class="size-7"> 
+            <path d="M32 144c0 79.5 64.5 144 144 144l123.3 0c22.6 19.9 52.2 32 84.7 32s62.1-12.1 84.7-32l27.3 0c61.9 0 112-50.1 112-112s-50.1-112-112-112c-10.7 0-21 1.5-30.8 4.3C443.8 27.7 401.1 0 352 0c-32.6 0-62.4 12.2-85.1 32.3C242.1 12.1 210.5 0 176 0C96.5 0 32 64.5 32 144zM616 368l-336 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l336 0c13.3 0 24-10.7 24-24s-10.7-24-24-24zm-64 96l-112 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24zm-192 0L24 464c-13.3 0-24 10.7-24 24s10.7 24 24 24l336 0c13.3 0 24-10.7 24-24s-10.7-24-24-24zM224 392c0-13.3-10.7-24-24-24L96 368c-13.3 0-24 10.7-24 24s10.7 24 24 24l104 0c13.3 0 24-10.7 24-24z"/></svg>
+          <span>สารมลพิษอื่นๆ</span>
+        </button>
       </router-link>
-      
-      <router-link to="/Homeview5">
-      <button class="flex flex-col items-center text-black font-bold mt-2">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" stroke-width="1.5" stroke="currentColor" class="size-6">
-          <path d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z"/></svg>
-        <span>เกี่ยวกับเรา</span>
-      </button>
-    </router-link>
 
-      <router-link to="/Login">
+      <router-link to="/HomeView5" class="no-underline">
+        <button class="flex flex-col items-center text-black font-bold mt-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z"/></svg>
+          <span>เกี่ยวกับเรา</span>
+        </button>
+      </router-link>
+
+      <!-- ปรับปุ่มล็อกอิน/แดชบอร์ดให้ใช้ router-link แทน -->
+      <router-link :to="isLoggedIn ? '/addminnn/Dashboard' : '/addminnn/Login'" class="no-underline">
         <button class="flex flex-col items-center text-black font-bold mt-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="black" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
           </svg>
-          <span>เข้าสู่ระบบ</span>
+          <span>{{ isLoggedIn ? 'แดชบอร์ด' : 'เข้าสู่ระบบ' }}</span>
         </button>
       </router-link>
     </div>
