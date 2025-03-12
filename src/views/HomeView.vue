@@ -53,13 +53,132 @@ const fetchPM25Data = async () => {
       };
     });
 
-    pm25Locations.value = [
-      { name: "คณะ ICT", value: 58.3 },
-      { name: "หอใน", value: 62.2 },
-      { name: "อาคารเรียน PKY", value: 51.9 },
-      { name: "คณะวิศวกรรมศาสตร์", value: 60.3 },
-    ].sort((a, b) => b.value - a.value);
+    // ดึงข้อมูล PM2.5 จาก API
+    try {
+      const pm25Response = await fetch('http://localhost:8000/pm25');
+      console.log('API Response status:', pm25Response.status);
+      const pm25Data = await pm25Response.json();
+      console.log('API Data:', pm25Data);
+      
+      const avgValues = {};
+      
+      if (pm25Data && (pm25Data.data?.length > 0 || Array.isArray(pm25Data))) {
+        console.log('PM2.5 data found, processing...');
+        // คำนวณค่าเฉลี่ยสำหรับแต่ละสถานที่
+        const dataArray = pm25Data.data || pm25Data;
+        
+        dataArray.forEach(item => {
+          if (!item.location) return;
+          
+          if (!avgValues[item.location]) {
+            avgValues[item.location] = [];
+          }
+          
+          // แปลงค่าเป็นตัวเลขและตรวจสอบว่าเป็นตัวเลขที่ถูกต้อง
+          const value = typeof item.value === 'number' ? item.value : parseFloat(item.value);
+          if (!isNaN(value)) {
+            avgValues[item.location].push(value);
+          }
+        });
+
+        // กำหนดค่าเริ่มต้นสำหรับแต่ละสถานที่
+        const defaultValues = {
+          "คณะ ICT": "0",
+          "หอใน": "0",
+          "อาคารเรียน PKY": "0",
+          "คณะวิศวกรรมศาสตร์": "0",
+          "อาคารเรียน UB": "0",
+          "คณะสาธารณสุขศาสตร์": "0",
+          "โรงเรียนสาธิตม.พะเยา": "0",
+          "โรงพยาบาลมหาวิทยาลัยพะเยา": "0"
+        };
+
+        // สร้างอาเรย์ของสถานที่พร้อมค่า PM2.5
+        const locationArray = [];
+        for (const location of Object.keys(defaultValues)) {
+          let value = defaultValues[location];
+          if (avgValues[location] && avgValues[location].length > 0) {
+            const sum = avgValues[location].reduce((a, b) => a + b, 0);
+            const avg = sum / avgValues[location].length;
+            value = avg.toFixed(1);
+          }
+          locationArray.push({
+            name: location,
+            value: value
+          });
+        }
+        
+        // เพิ่มสถานที่ที่ไม่ได้อยู่ในค่าเริ่มต้น
+        for (const location in avgValues) {
+          if (!Object.keys(defaultValues).includes(location)) {
+            const values = avgValues[location];
+            if (values && values.length > 0) {
+              const sum = values.reduce((a, b) => a + b, 0);
+              const avg = sum / values.length;
+              locationArray.push({
+                name: location,
+                value: avg.toFixed(1)
+              });
+            }
+          }
+        }
+        
+        // เรียงลำดับตามค่าจากมากไปน้อย
+        locationArray.sort((a, b) => Number(b.value) - Number(a.value));
+        pm25Locations.value = locationArray;
+        console.log('PM2.5 Locations sorted:', pm25Locations.value);
+
+        // คำนวณค่าเฉลี่ย PM2.5 ทั้งหมด
+        const allValues = Object.values(avgValues).flat();
+        if (allValues.length > 0) {
+          const avgTotal = allValues.reduce((a, b) => a + b, 0) / allValues.length;
+          pm25.value = avgTotal.toFixed(1);
+          console.log('Overall PM2.5 average:', pm25.value);
+        } else {
+          console.log('No PM2.5 values found for average calculation');
+        }
+      } else {
+        console.log('No valid PM2.5 data in response, using default values');
+        // ถ้าไม่มีข้อมูล ใช้ค่าเริ่มต้น
+        pm25Locations.value = [
+          { name: "คณะ ICT", value: "0" },
+          { name: "หอใน", value: "0" },
+          { name: "อาคารเรียน PKY", value: "0" },
+          { name: "คณะวิศวกรรมศาสตร์", value: "0" },
+          { name: "อาคารเรียน UB", value: "0" },
+          { name: "คณะสาธารณสุขศาสตร์", value: "0" },
+          { name: "โรงเรียนสาธิตม.พะเยา", value: "0" },
+          { name: "โรงพยาบาลมหาวิทยาลัยพะเยา", value: "0" }
+        ];
+      }
+    } catch (error) {
+      console.error('Error fetching PM2.5 locations data:', error);
+      // กรณีเกิด error ให้ใช้ค่าเริ่มต้น
+      pm25Locations.value = [
+        { name: "คณะ ICT", value: "0" },
+        { name: "หอใน", value: "0" },
+        { name: "อาคารเรียน PKY", value: "0" },
+        { name: "คณะวิศวกรรมศาสตร์", value: "0" },
+        { name: "อาคารเรียน UB", value: "0" },
+        { name: "คณะสาธารณสุขศาสตร์", value: "0" },
+        { name: "โรงเรียนสาธิตม.พะเยา", value: "0" },
+        { name: "โรงพยาบาลมหาวิทยาลัยพะเยา", value: "0" }
+      ];
+    }
+
+    lastUpdatedTime.value = new Date().toLocaleString("th-TH", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      timeZone: "Asia/Bangkok",
+    });
+
   } catch (error) {
+    console.error('Error fetching PM2.5 data:', error);
     errorMessage.value = error.message;
   } finally {
     isLoading.value = false;
@@ -83,8 +202,8 @@ const updateTime = () => {
 
 // ฟังก์ชันเริ่มการอัปเดตอัตโนมัติ
 const startAutoUpdate = () => {
-  // เริ่มการอัปเดตข้อมูล PM2.5 ทุกๆ 5 นาที (300,000 มิลลิวินาที)
-  updateIntervalPM25 = setInterval(fetchPM25Data, 300000);
+  // เริ่มการอัปเดตข้อมูล PM2.5 ทุกๆ 10 วินาที (เร็วขึ้น)
+  updateIntervalPM25 = setInterval(fetchPM25Data, 10000);
   
   // เริ่มการอัปเดตเวลา ทุกๆ 1 วินาที (1,000 มิลลิวินาที)
   updateTime(); // เรียกใช้อัปเดตเวลาในตอนเริ่มต้น
@@ -136,6 +255,17 @@ onMounted(() => {
 
         <p class="mt-5 bg-gray-200 p-2 rounded-lg font-bold w-[700px] h-[48px] text-center mx-auto">หลีกเลี่ยงกิจกรรมกลางแจ้ง สวมหน้ากาก</p>
         <p class="text-sm text-gray-500 mt-2">อัปเดตล่าสุด: {{ lastUpdatedTime }}</p>
+        <p class="text-xs text-blue-500">(ข้อมูลจาก API จะอัพเดตอัตโนมัติทุก 10 วินาที)</p>
+
+        <!-- ปุ่มดูลำดับค่า PM2.5 ตามสถานที่ -->
+        <div class="mt-4">
+          <router-link to="/pm25-ranking" class="bg-orange-500 hover:bg-orange-600 text-white py-2 px-6 rounded-full inline-flex items-center transition-all">
+            <span>ดูลำดับค่าฝุ่นเฉลี่ยรายช่วงกายในมหาวิทยาลัยพะเยา</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </router-link>
+        </div>
       </div>
     </div>
  

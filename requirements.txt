@@ -1,0 +1,9 @@
+fastapi==0.104.1
+uvicorn==0.24.0
+python-dotenv==1.0.0
+pymongo==4.6.0
+passlib==1.7.4
+python-jose[cryptography]==3.3.0  # สำหรับ JWT
+bcrypt==4.0.1  # สำหรับการเข้ารหัสรหัสผ่าน
+pydantic==2.4.2
+python-multipart==0.0.6  # สำหรับการจัดการ form data 

@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Dashboard from "./views/Dashboard.vue";
-import Admin from "./views/Admin.vue";
+import Admin from "./Admin.vue";
 import Login from "./views/Login.vue";
-import AdminPM25Input from './views/AdminPM25Input.vue'
+import AdminPM25Input from './AdminPM25Input.vue'
 
 const routes = [
   { path: "/", component: Dashboard },

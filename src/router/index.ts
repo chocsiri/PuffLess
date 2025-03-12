@@ -7,6 +7,7 @@ import Homeview5Vue from '@/views/Homeview5.vue'
 import LoginVue from '@/views/addminnn/Login.vue'
 import AdminVue from '@/views/addminnn/Admin.vue'
 import AdminPM25InputVue from '@/views/addminnn/AdminPM25Input.vue'
+import PM25LocationRanking from '@/views/PM25LocationRanking.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,6 +48,11 @@ const router = createRouter({
       name: 'adminPM25Input',
       component: AdminPM25InputVue,
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/pm25-ranking',
+      name: 'pm25Ranking',
+      component: PM25LocationRanking
     }
   ]
 })
