@@ -38,9 +38,9 @@ const router = createRouter({
       component: LoginVue
     },
     {
-      path: '/admin',
+      path: '/',
       name: 'admin',
-      component: AdminVue,
+      component: LoginVue,
       meta: { requiresAuth: true }
     },
     {

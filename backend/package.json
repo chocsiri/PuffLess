@@ -1,0 +1,31 @@
+{
+  "name": "puffless-backend",
+  "version": "1.0.0",
+  "description": "Backend for PuffLess application using TiDB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "setup": "node setup.js",
+    "migrate": "node migration.js",
+    "backup": "node backup.js backup",
+    "restore": "node backup.js restore",
+    "db:health": "node -e \"require('./config').testConnection(require('./config').createPool()).then(success => process.exit(success ? 0 : 1))\"",
+    "db:admin": "node -e \"const db=require('./config');const pool=db.createPool();db.testConnection(pool).then(()=>{console.log('✅ ทดสอบการเชื่อมต่อสำเร็จ')}).catch(err=>{console.error('❌ เกิดข้อผิดพลาด:',err)}).finally(()=>pool.end())\"",
+    "db:create-tables": "node schema/create-tables.js",
+    "db:analyze": "node schema/table-optimizer.js",
+    "db:optimize": "node schema/table-optimizer.js --apply",
+    "db:monitor": "node monitoring.js stats"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mysql2": "^3.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+} 

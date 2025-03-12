@@ -28,14 +28,21 @@
               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="" disabled>กรุณาเลือกสถานที่</option>
-              <option value="หอใน">หอใน</option>
               <option value="คณะ ICT">คณะ ICT</option>
+<<<<<<< HEAD
               <option value="คณะวิศวกรรมศาสตร์">คณะวิศวกรรมศาสตร์</option>
               <option value="อาคารเรียน PKY">อาคารเรียน PKY</option>
               <option value="อาคารเรียน UB">อาคารเรียน UB</option>
               <option value="คณะสาธารณสุขศาสตร์">คณะสาธารณสุขศาสตร์</option>
               <option value="โรงเรียนสาธิตม.พะเยา">โรงเรียนสาธิตม.พะเยา</option>
               <option value="โรงพยาบาลมหาวิทยาลัยพะเยา">โรงพยาบาลมหาวิทยาลัยพะเยา</option>
+=======
+              <option value="โรงพยาบาลมหาวิทยาลัยพะเยา">โรงพยาบาลมหาวิทยาลัยพะเยา</option>
+              <option value="คณะสาธารณสุขศาสตร์">คณะสาธารณสุขศาสตร์</option>
+              <option value="อาคารเรียนรวม(PKY)">อาคารเรียนรวม(PKY)</option>
+              <option value="อาคารพระอุบาลี(UB)">อาคารพระอุบาลี(UB)</option>
+              <option value="UP Dorm">UP Dorm</option>
+>>>>>>> 6a7b5f8d7470776736d56fc4b9399f50a0bed79e
             </select>
           </div>
 
